@@ -15,7 +15,10 @@ For now it is only possible to import script directly as source:
 #####################
 
 arg_pattern="#tag #flag? debug?"
-source /dev/stdin ${arg_pattern} $@ <<< "$(curl -L -s https://git.io/v7gXU)"
+source /dev/stdin "${arg_pattern}" "$@" <<< "$(curl -L -s https://git.io/v7gXU)"
+
+# Notice the quotes around pattern and $@
+# They are required in order to not break the "multi word strings"
 
 ####################
 # Main script body
