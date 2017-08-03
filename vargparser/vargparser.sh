@@ -49,7 +49,7 @@ done
 shift;
 while [[ $# -gt 0 ]]; do
   vargparser_arg_definition=;
-  if [[ $1 =~ ^-(.)$ || $1 =~ ^--([[:alpha:][:digit:]-]{2,})$ ]]; then
+  if [[ "$1" =~ ^-(.)$ || "$1" =~ ^--([[:alpha:][:digit:]-]{2,})$ ]]; then
     vargparser_arg_var_name="${VARGPARSER_ARG_VAR_PREFIX}${BASH_REMATCH[1]//-/_}"
     IFS=';' read -ra vargparser_arg_definition <<< "${!vargparser_arg_var_name}"
   fi
@@ -62,11 +62,11 @@ while [[ $# -gt 0 ]]; do
   if [[ ${vargparser_arg_boolean} == 1 ]]; then
     eval `echo "_${vargparser_arg_full_name}=1"`
   else
-    if [[ ! $2 ]]; then
+    if [[ ! "$2" ]]; then
       (>&2 echo "Argument '$1' requires a value!");
       exit 1;
     fi
-    eval `echo "_${vargparser_arg_full_name}=$2"`
+    eval `echo "_${vargparser_arg_full_name}=\"$2\""`
     shift;
   fi
   shift;
