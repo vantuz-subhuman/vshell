@@ -3,12 +3,21 @@
 VARGPARSER_ARG_VAR_PREFIX="vargparser_dynamic_arg_var_"
 
 vargparser_pattern="$1"
+vargparser_required_arguments=()
 for word in ${vargparser_pattern}; do
+  vargparser_arg_required=`[[ ${word} == '^'* ]] && echo 1 || echo 0`;
+  if [[ ${vargparser_arg_required} == 1 ]]; then
+    word=${word:1};
+    if [[ ! ${word} ]]; then
+      (>&2 echo "Argument pattern cannot end at '^'!");
+      exit 1;
+    fi
+  fi
   vargparser_arg_short_flag=`[[ ${word} == '#'* ]] && echo 1 || echo 0`;
   if [[ ${vargparser_arg_short_flag} == 1 ]]; then
     word=${word:1};
     if [[ ! ${word} ]]; then
-      (>&2 echo "Argument pattern cannot consist of a single '#'!");
+      (>&2 echo "Argument pattern cannot end at '#'!");
       exit 1;
     fi
   fi
@@ -29,6 +38,9 @@ for word in ${vargparser_pattern}; do
 "Argument required to have name longer than a single letter!
 Use '#' in order to create an *additional* short flag");
     exit 1;
+  fi
+  if [[ ${vargparser_arg_required} == 1 ]]; then
+    vargparser_required_arguments+=(${word})
   fi
   vargparser_arg_var_full_name="${VARGPARSER_ARG_VAR_PREFIX}${word//-/_}";
   if [[ ${!vargparser_arg_var_full_name} ]]; then
@@ -59,6 +71,7 @@ while [[ $# -gt 0 ]]; do
   fi
   vargparser_arg_full_name=${vargparser_arg_definition[0]};
   vargparser_arg_boolean=${vargparser_arg_definition[1]};
+  vargparser_required_arguments=(${vargparser_required_arguments[@]#${vargparser_arg_full_name}});
   if [[ ${vargparser_arg_boolean} == 1 ]]; then
     eval `echo "_${vargparser_arg_full_name}=1"`
   else
@@ -71,3 +84,7 @@ while [[ $# -gt 0 ]]; do
   fi
   shift;
 done
+if (( ${#vargparser_required_arguments} > 0 )); then
+  (>&2 echo "These arguments are required: [${vargparser_required_arguments[@]}]");
+  exit 1;
+fi
