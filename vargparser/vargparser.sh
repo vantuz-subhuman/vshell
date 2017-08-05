@@ -39,22 +39,29 @@ for word in ${vargparser_pattern}; do
 Use '#' in order to create an *additional* short flag");
     exit 1;
   fi
-  if [[ ${vargparser_arg_required} == 1 ]]; then
-    vargparser_required_arguments+=(${word})
-  fi
   vargparser_arg_var_full_name="${VARGPARSER_ARG_VAR_PREFIX}${word//-/_}";
   if [[ ${!vargparser_arg_var_full_name} ]]; then
     (>&2 echo "Two arguments cannot have the same name! Found: '${word}'");
     exit 1;
   fi
-  vargparser_arg_var_value="\"${word};${vargparser_arg_boolean}\"";
-  eval `echo "${vargparser_arg_var_full_name}=${vargparser_arg_var_value}"`;
+  vargparser_arg_public_form="--${word}"
   if [[ ${vargparser_arg_short_flag} == 1 ]]; then
     vargparser_arg_var_short_name="${VARGPARSER_ARG_VAR_PREFIX}${word:0:1}";
+    vargparser_arg_public_form="(-${word:0:1}|${vargparser_arg_public_form})"
     if [[ ${!vargparser_arg_var_short_name} ]]; then
       (>&2 echo "Two short arguments cannot start with the same letter! Found: '${word}'");
       exit 1;
     fi
+  fi
+  if [[ ${vargparser_arg_boolean} != 1 ]]; then
+    vargparser_arg_public_form="${vargparser_arg_public_form} <value>"
+  fi
+  if [[ ${vargparser_arg_required} == 1 ]]; then
+    vargparser_required_arguments+=("${word};${vargparser_arg_public_form};")
+  fi
+  vargparser_arg_var_value="\"${word};${vargparser_arg_boolean}\"";
+  eval `echo "${vargparser_arg_var_full_name}=${vargparser_arg_var_value}"`;
+  if [[ ${vargparser_arg_short_flag} == 1 ]]; then
     eval `echo "${vargparser_arg_var_short_name}=${vargparser_arg_var_value}"`;
   fi
 done
@@ -71,7 +78,9 @@ while [[ $# -gt 0 ]]; do
   fi
   vargparser_arg_full_name=${vargparser_arg_definition[0]};
   vargparser_arg_boolean=${vargparser_arg_definition[1]};
-  vargparser_required_arguments=(${vargparser_required_arguments[@]#${vargparser_arg_full_name}});
+  f="${vargparser_arg_full_name}\;*\;"
+  q=${vargparser_required_arguments[@]#${f}}
+  vargparser_required_arguments=("${q[@]}");
   if [[ ${vargparser_arg_boolean} == 1 ]]; then
     eval `echo "_${vargparser_arg_full_name//-/_}=1"`
   else
@@ -84,7 +93,12 @@ while [[ $# -gt 0 ]]; do
   fi
   shift;
 done
-if (( ${#vargparser_required_arguments} > 0 )); then
-  (>&2 echo "These arguments are required: [${vargparser_required_arguments[@]}]");
+if [[ ${vargparser_required_arguments[@]} ]]; then
+  msg="These arguments are required:"
+  for a in "${vargparser_required_arguments[@]}"; do
+    IFS=';' read -ra arr <<< "${a}"
+    msg="${msg}\n${arr[1]}"
+  done
+  (>&2 echo -e ${msg});
   exit 1;
 fi
