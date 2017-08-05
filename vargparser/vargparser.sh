@@ -47,14 +47,14 @@ Use '#' in order to create an *additional* short flag");
     (>&2 echo "Two arguments cannot have the same name! Found: '${word}'");
     exit 1;
   fi
-  vargparser_arg_var_short_name="${VARGPARSER_ARG_VAR_PREFIX}${word:0:1}";
-  if [[ ${!vargparser_arg_var_short_name} ]]; then
-    (>&2 echo "Two short arguments cannot start with the same letter! Found: '${word}'");
-    exit 1;
-  fi
-  vargparser_arg_var_value="\"${word//-/_};${vargparser_arg_boolean}\"";
+  vargparser_arg_var_value="\"${word};${vargparser_arg_boolean}\"";
   eval `echo "${vargparser_arg_var_full_name}=${vargparser_arg_var_value}"`;
   if [[ ${vargparser_arg_short_flag} == 1 ]]; then
+    vargparser_arg_var_short_name="${VARGPARSER_ARG_VAR_PREFIX}${word:0:1}";
+    if [[ ${!vargparser_arg_var_short_name} ]]; then
+      (>&2 echo "Two short arguments cannot start with the same letter! Found: '${word}'");
+      exit 1;
+    fi
     eval `echo "${vargparser_arg_var_short_name}=${vargparser_arg_var_value}"`;
   fi
 done
@@ -73,7 +73,7 @@ while [[ $# -gt 0 ]]; do
   vargparser_arg_boolean=${vargparser_arg_definition[1]};
   vargparser_required_arguments=(${vargparser_required_arguments[@]#${vargparser_arg_full_name}});
   if [[ ${vargparser_arg_boolean} == 1 ]]; then
-    eval `echo "_${vargparser_arg_full_name}=1"`
+    eval `echo "_${vargparser_arg_full_name//-/_}=1"`
   else
     if [[ ! "$2" ]]; then
       (>&2 echo "Argument '$1' requires a value!");
