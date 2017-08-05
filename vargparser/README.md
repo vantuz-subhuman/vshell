@@ -14,7 +14,7 @@ For now it is only possible to import script directly as source:
 # Parsing arguments
 #####################
 
-arg_pattern="#tag #flag? debug?"
+arg_pattern="^#tag #flag? debug?"
 source /dev/stdin "${arg_pattern}" "$@" <<< "$(curl -L -s https://git.io/v7gXU)"
 
 # Notice the quotes around pattern and $@
@@ -42,6 +42,7 @@ This script may then be called like this:
 - The order of the arguments does not matter
 - You may specify whether argument may be shortened or not
 - You may specify whether argument takes a value
+- You may specify whether argument is required
 - Parsed arguments are automatically stored into variables
 
 ## Pattern
@@ -86,7 +87,12 @@ Examples:
 - `6V` -> `${_6V}`
 - `get-some` -> `${_get_some}` 
 
-### \#
+### \^ (Required argument)
+Optional prefix `^` signals that argument is required.
+If a required argument was not specified - script will print
+a message and exit with status 1.
+
+### \# (Short argument)
 Optional prefix `#` signals that argument has the short version.
 Short version argument is automatically generated from the first letter
 of the full argument name.
