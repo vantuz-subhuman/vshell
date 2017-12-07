@@ -88,7 +88,7 @@ while [[ $# -gt 0 ]]; do
       (>&2 echo "Argument '$1' requires a value!");
       exit 1;
     fi
-    eval `echo "_${vargparser_arg_full_name}=\"$2\""`
+    eval `echo "_${vargparser_arg_full_name//-/_}=\"$2\""`
     shift;
   fi
   shift;
